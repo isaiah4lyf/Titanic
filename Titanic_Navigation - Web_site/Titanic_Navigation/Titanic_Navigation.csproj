@@ -65,6 +65,7 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Img\3108.jpg" />
     <Content Include="packages.config" />
     <Content Include="assets\js\morrisjs\.bower.json" />
     <Content Include="assets\js\morrisjs\.gitignore" />
@@ -116,6 +117,15 @@
     <Content Include="assets\fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="assets\fonts\glyphicons-halflings-regular.woff" />
     <Content Include="assets\fonts\glyphicons-halflings-regular.woff2" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Content Include="Web References\Titanic_Service_Reference\Reference.map">
+      <Generator>MSDiscoCodeGenerator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </Content>
+    <None Include="Web References\Titanic_Service_Reference\Titanic_Service.wsdl" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -407,10 +417,16 @@
     <Content Include="js\speedometer.js" />
     <Content Include="map.js" />
     <Content Include="Titanic_Navigation.aspx" />
+    <None Include="Web References\Titanic_Service_Reference\Titanic_Service.disco" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <Compile Include="Titanic_Navigation.aspx.cs">
       <DependentUpon>Titanic_Navigation.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -418,6 +434,30 @@
     <Compile Include="Titanic_Navigation.aspx.designer.cs">
       <DependentUpon>Titanic_Navigation.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Web References\Titanic_Service_Reference\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.map</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferences Include="Web References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferenceUrl Include="http://192.168.0.137/Titanic_Service/Titanic_Service.asmx">
+      <UrlBehavior>Dynamic</UrlBehavior>
+      <RelPath>Web References\Titanic_Service_Reference\</RelPath>
+      <UpdateFromURL>http://192.168.0.137/Titanic_Service/Titanic_Service.asmx</UpdateFromURL>
+      <ServiceLocationURL>
+      </ServiceLocationURL>
+      <CachedDynamicPropName>
+      </CachedDynamicPropName>
+      <CachedAppSettingsObjectName>Settings</CachedAppSettingsObjectName>
+      <CachedSettingsPropName>Titanic_Navigation_Titanic_Service_Reference_Titanic_Service</CachedSettingsPropName>
+    </WebReferenceUrl>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
