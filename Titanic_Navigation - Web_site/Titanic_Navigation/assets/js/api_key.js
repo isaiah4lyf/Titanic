@@ -1,0 +1,1 @@
+﻿$scope.googleMapsUrl="https://maps.googleapis.com/maps/api/js?key=AIzaSyBgfU99qd3NqiODQr5TmzcEHpyVvtUwccg";
