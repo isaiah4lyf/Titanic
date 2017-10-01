@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -21,6 +22,14 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -31,6 +40,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView speed;
     private ArrayList<LatLng> points; //added
     Polyline line; //added
+
+
+    private Socket connectionSocket;
+    public BufferedOutputStream os;
+    private InputStream is;
+    private PrintWriter txtout;
+    private BufferedReader txtin;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,8 +59,95 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
         speed = (TextView)findViewById(R.id.text);
         points = new ArrayList<LatLng>(); //added
+
+
+
+        try {
+
+
+            socketTask task = new socketTask();
+            task.execute();
+
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(),e.toString(), Toast.LENGTH_LONG).show();
+        }
     }
 
+
+    private class socketTask extends AsyncTask<String, Void, String[]> {
+
+        @Override
+        protected void onPreExecute() {
+            //if you want, start progress dialog here
+        }
+
+        @Override
+        protected String[] doInBackground(String... urls) {
+            String[] address = null;
+            try {
+                String severIp = "10.254.239.52";
+                InetAddress serverAddr = InetAddress.getByName(severIp);
+
+
+                connectionSocket = new Socket();
+
+
+                connectionSocket.connect(new InetSocketAddress(serverAddr, 2015), 5000);
+
+
+                address = new String[1];
+                address[0] = "Connected";
+
+                is = connectionSocket.getInputStream();
+
+                txtout = new PrintWriter(connectionSocket.getOutputStream());
+
+                sendMessage("4.2");
+
+
+            } catch (Exception e) {
+                address = new String[1];
+                address[0] = "ERROR" +  e.getLocalizedMessage();
+            }
+
+
+            return address;
+        }
+
+        @Override
+        protected void onPostExecute(String[] result) {
+            //if you started progress dialog dismiss it here
+            if(result.length > 0)
+            {
+                Toast.makeText(getApplicationContext(),result[0], Toast.LENGTH_LONG).show();
+            }
+
+        }
+
+    }
+    public void sendMessage(String message)
+    {
+        // Send text message
+        txtout.println(message);
+        txtout.flush();
+    }
+
+    public String getResponse()
+    {
+        // Get text response
+        String response  = "";
+        try
+        {
+            response = txtin.readLine();
+            System.out.println(response);
+
+        }
+        catch (IOException ex)
+        {
+            ex.printStackTrace();
+        }
+        return response;
+    }
 
     /**
      * Manipulates the map once available.

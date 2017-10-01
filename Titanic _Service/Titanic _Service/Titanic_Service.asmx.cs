@@ -46,14 +46,14 @@ namespace Titanic__Service
         }
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         [WebMethod]
-        public string Update_Speed(double speed)
+        public string Update_Speed(string speed)
         {
             LinqDataContext linq = new LinqDataContext();
 
             Speed speedList = (from Speed in linq.Speeds
                              where Speed.Id == 1
                              select Speed).First();
-            speedList.Speed1 = speed;
+            speedList.Speed1 = Convert.ToDouble(speed);
             linq.SubmitChanges();
             return "Succesx";
         }
