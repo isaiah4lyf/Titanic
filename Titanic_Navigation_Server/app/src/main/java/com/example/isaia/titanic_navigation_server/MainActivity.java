@@ -131,13 +131,13 @@ public class MainActivity extends AppCompatActivity {
 
                     txtin = new BufferedReader(new InputStreamReader(connectionToClient2.getInputStream()));
                     txtout = new PrintWriter(os);
-                    String speed = txtin.readLine();
-                    text.setText(speed);
-                    if(speed != null)
-                    {
-                        Forwad_Speed tt = new Forwad_Speed();
-                        tt.execute(new String[]{speed});
-                    }
+                    //String speed = txtin.readLine();
+
+                    Forwad_Speed tt = new Forwad_Speed();
+                    tt.execute(new String[]{txtin.readLine()});
+
+                    text.setText("succcs");
+
 
 
 

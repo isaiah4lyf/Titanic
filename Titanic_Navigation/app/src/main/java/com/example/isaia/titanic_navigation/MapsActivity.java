@@ -10,6 +10,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,6 +50,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private InputStream is;
     private PrintWriter txtout;
     private BufferedReader txtin;
+    private EditText editText;
 
 
     @Override
@@ -59,20 +63,81 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
         speed = (TextView)findViewById(R.id.text);
         points = new ArrayList<LatLng>(); //added
+        editText = (EditText)findViewById(R.id.editText);
 
 
+        Connect task = new Connect();
+        task.execute(new String[]{});
 
-        try {
 
+        final Button btnOpenPopup = (Button)findViewById(R.id.button2);
+        btnOpenPopup.setOnClickListener(new Button.OnClickListener(){
 
-            socketTask task = new socketTask();
-            task.execute();
+            @Override
+            public void onClick(View arg0) {
 
-        } catch (Exception e) {
-            Toast.makeText(getApplicationContext(),e.toString(), Toast.LENGTH_LONG).show();
-        }
+                try {
+
+                    socketTask task = new socketTask();
+                    task.execute(new String[]{editText.getText().toString()});
+
+                } catch (Exception e) {
+                    Toast.makeText(getApplicationContext(),e.toString(), Toast.LENGTH_LONG).show();
+                }
+
+            }});
     }
 
+
+    private class Connect extends AsyncTask<String, Void, String[]> {
+
+        @Override
+        protected void onPreExecute() {
+            //if you want, start progress dialog here
+        }
+
+        @Override
+        protected String[] doInBackground(String... urls) {
+            String[] address = null;
+            try {
+
+
+
+
+
+                String severIp = "10.254.239.52";
+                InetAddress serverAddr = InetAddress.getByName(severIp);
+
+                connectionSocket = new Socket();
+
+
+                connectionSocket.connect(new InetSocketAddress(serverAddr, 2015), 5000);
+
+
+                address = new String[1];
+                address[0] = "Connected";
+
+
+            } catch (Exception e) {
+                address = new String[1];
+                address[0] = "ERROR" +  e.getLocalizedMessage();
+            }
+
+
+            return address;
+        }
+
+        @Override
+        protected void onPostExecute(String[] result) {
+            //if you started progress dialog dismiss it here
+            if(result.length > 0)
+            {
+                Toast.makeText(getApplicationContext(),result[0], Toast.LENGTH_LONG).show();
+            }
+
+        }
+
+    }
 
     private class socketTask extends AsyncTask<String, Void, String[]> {
 
@@ -85,24 +150,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected String[] doInBackground(String... urls) {
             String[] address = null;
             try {
-                String severIp = "10.254.239.52";
-                InetAddress serverAddr = InetAddress.getByName(severIp);
 
-
-                connectionSocket = new Socket();
-
-
-                connectionSocket.connect(new InetSocketAddress(serverAddr, 2015), 5000);
 
 
                 address = new String[1];
-                address[0] = "Connected";
+                address[0] = "Succes";
 
                 is = connectionSocket.getInputStream();
 
                 txtout = new PrintWriter(connectionSocket.getOutputStream());
 
-                sendMessage("4.2");
+                sendMessage(urls[0]);
 
 
             } catch (Exception e) {
