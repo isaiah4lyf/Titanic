@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         {
 
             Toast.makeText(getApplicationContext(),"Creating server", Toast.LENGTH_LONG).show();
-            server = new ServerSocket(2015);
+            server = new ServerSocket(8080);
             running = true;
             Message message_retriever = new Message();
             Thread thread2 = new Thread(message_retriever);
@@ -136,13 +136,14 @@ public class MainActivity extends AppCompatActivity {
                     Forwad_Speed tt = new Forwad_Speed();
                     tt.execute(new String[]{txtin.readLine()});
 
+
+                    Forward_Coordinates tas = new Forward_Coordinates();
+                    tas.execute(new String[]{txtin.readLine(),txtin.readLine()});
                     text.setText("succcs");
 
 
-
-
                 } catch (Exception e) {
-
+                    text.setText(e.toString());
                 }
 
             }
@@ -166,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 final String NAMESPACE = "http://tempuri.org/";
                 final String URL = "http://10.254.116.132/Titanic_Service/";
-                //final String URL = "http://192.168.43.175:80/Repository_Service/";
+                //final String URL = "http://192.168.0.137/Titanic_Service/";
                 final String SOAP_ACTION = "http://tempuri.org/Update_Speed";
                 final String METHOD_NAME = "Update_Speed";
                 SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME);
@@ -174,6 +175,61 @@ public class MainActivity extends AppCompatActivity {
 
                 request.addProperty("speed", urls[0]);
 
+
+                SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+                envelope.dotNet = true;
+                envelope.setOutputSoapObject(request);
+                HttpTransportSE androidHttpTransport = new HttpTransportSE(URL);
+                androidHttpTransport.call(SOAP_ACTION, envelope);
+                SoapPrimitive response = (SoapPrimitive) envelope.getResponse();
+
+
+                Collections = response.toString();
+
+            } catch (Exception e) {
+                Collections = e.getLocalizedMessage();
+            }
+
+
+            return Collections;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            //if you started progress dialog dismiss it here
+            Toast.makeText(getApplicationContext(),result, Toast.LENGTH_LONG).show();
+
+
+        }
+
+
+    }
+
+
+
+    private class Forward_Coordinates extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPreExecute() {
+            //if you want, start progress dialog here
+        }
+
+        @Override
+        protected String doInBackground(String... urls) {
+            String Collections = "";
+
+
+            try {
+                final String NAMESPACE = "http://tempuri.org/";
+                final String URL = "http://10.254.116.132/Titanic_Service/";
+                //final String URL = "http://192.168.0.137/Titanic_Service/";
+                final String SOAP_ACTION = "http://tempuri.org/Insert_Coordinates";
+                final String METHOD_NAME = "Insert_Coordinates";
+                SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME);
+
+
+                request.addProperty("lat", urls[0]);
+                request.addProperty("lng", urls[1]);
 
                 SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
                 envelope.dotNet = true;

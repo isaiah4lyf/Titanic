@@ -60,14 +60,14 @@ namespace Titanic__Service
 
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         [WebMethod]
-        public string Insert_Coordinates(double lat,double lng)
+        public string Insert_Coordinates(string lat,string lng)
         {
             LinqDataContext linq = new LinqDataContext();
 
             Coordinate cord = new Coordinate();
 
-            cord.lat = lat;
-            cord.lng = lng;
+            cord.lat = Convert.ToDouble(lat);
+            cord.lng = Convert.ToDouble(lng);
             cord.Date = DateTime.Now;
             linq.Coordinates.InsertOnSubmit(cord);
             linq.SubmitChanges();

@@ -72,7 +72,7 @@ function initAutocomplete() {
             $(document).ready(function () {
 
                 $.ajax({
-                    url: 'http://10.254.116.132/Titanic_Service/Titanic_Service.asmx/Retrieve_Coordinates',
+                    url: 'http://192.168.43.175/Titanic_Service/Titanic_Service.asmx/Retrieve_Coordinates',
                     method: 'post',
                     datatype: 'json',
                     success: function (data2) {
@@ -122,7 +122,7 @@ function initAutocomplete() {
             $(document).ready(function () {
 
                 $.ajax({
-                    url: 'http://10.254.116.132/Titanic_Service/Titanic_Service.asmx/Retrieve_Speed',
+                    url: 'http://192.168.43.175/Titanic_Service/Titanic_Service.asmx/Retrieve_Speed',
                     method: 'post',
                     datatype: 'json',
                     success: function (data2) {

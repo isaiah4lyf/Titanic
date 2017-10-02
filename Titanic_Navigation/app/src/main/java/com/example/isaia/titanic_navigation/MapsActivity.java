@@ -10,8 +10,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,13 +23,16 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import org.ksoap2.SoapEnvelope;
+import org.ksoap2.serialization.SoapObject;
+import org.ksoap2.serialization.SoapPrimitive;
+import org.ksoap2.serialization.SoapSerializationEnvelope;
+import org.ksoap2.transport.HttpTransportSE;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -51,7 +52,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private PrintWriter txtout;
     private BufferedReader txtin;
     private EditText editText;
-
+    private EditText lat;
+    private EditText lng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,150 +63,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        speed = (TextView)findViewById(R.id.text);
         points = new ArrayList<LatLng>(); //added
-        editText = (EditText)findViewById(R.id.editText);
+        speed = (TextView)findViewById(R.id.text);
 
-
-        Connect task = new Connect();
-        task.execute(new String[]{});
-
-
-        final Button btnOpenPopup = (Button)findViewById(R.id.button2);
-        btnOpenPopup.setOnClickListener(new Button.OnClickListener(){
-
-            @Override
-            public void onClick(View arg0) {
-
-                try {
-
-                    socketTask task = new socketTask();
-                    task.execute(new String[]{editText.getText().toString()});
-
-                } catch (Exception e) {
-                    Toast.makeText(getApplicationContext(),e.toString(), Toast.LENGTH_LONG).show();
-                }
-
-            }});
-    }
-
-
-    private class Connect extends AsyncTask<String, Void, String[]> {
-
-        @Override
-        protected void onPreExecute() {
-            //if you want, start progress dialog here
-        }
-
-        @Override
-        protected String[] doInBackground(String... urls) {
-            String[] address = null;
-            try {
-
-
-
-
-
-                String severIp = "10.254.239.52";
-                InetAddress serverAddr = InetAddress.getByName(severIp);
-
-                connectionSocket = new Socket();
-
-
-                connectionSocket.connect(new InetSocketAddress(serverAddr, 2015), 5000);
-
-
-                address = new String[1];
-                address[0] = "Connected";
-
-
-            } catch (Exception e) {
-                address = new String[1];
-                address[0] = "ERROR" +  e.getLocalizedMessage();
-            }
-
-
-            return address;
-        }
-
-        @Override
-        protected void onPostExecute(String[] result) {
-            //if you started progress dialog dismiss it here
-            if(result.length > 0)
-            {
-                Toast.makeText(getApplicationContext(),result[0], Toast.LENGTH_LONG).show();
-            }
-
-        }
-
-    }
-
-    private class socketTask extends AsyncTask<String, Void, String[]> {
-
-        @Override
-        protected void onPreExecute() {
-            //if you want, start progress dialog here
-        }
-
-        @Override
-        protected String[] doInBackground(String... urls) {
-            String[] address = null;
-            try {
-
-
-
-                address = new String[1];
-                address[0] = "Succes";
-
-                is = connectionSocket.getInputStream();
-
-                txtout = new PrintWriter(connectionSocket.getOutputStream());
-
-                sendMessage(urls[0]);
-
-
-            } catch (Exception e) {
-                address = new String[1];
-                address[0] = "ERROR" +  e.getLocalizedMessage();
-            }
-
-
-            return address;
-        }
-
-        @Override
-        protected void onPostExecute(String[] result) {
-            //if you started progress dialog dismiss it here
-            if(result.length > 0)
-            {
-                Toast.makeText(getApplicationContext(),result[0], Toast.LENGTH_LONG).show();
-            }
-
-        }
-
-    }
-    public void sendMessage(String message)
-    {
-        // Send text message
-        txtout.println(message);
-        txtout.flush();
-    }
-
-    public String getResponse()
-    {
-        // Get text response
-        String response  = "";
-        try
-        {
-            response = txtin.readLine();
-            System.out.println(response);
-
-        }
-        catch (IOException ex)
-        {
-            ex.printStackTrace();
-        }
-        return response;
     }
 
     /**
@@ -244,16 +105,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 try
                 {
-                    String speedF = String.valueOf(location.getSpeed());
+                    String speedF = String.valueOf((location.getSpeed()*3600)/1000);
                     String bearing = String.valueOf(location.getBearing());
                     speed.setText(speedF + "");
                     double latitude = location.getLatitude();
                     double longitude = location.getLongitude();
                     LatLng latLng = new LatLng(latitude, longitude); //you already have this
 
+
                     points.add(latLng); //added
                     mMap.moveCamera( CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude) ,20) );
                     redrawLine(latitude,longitude); //added
+
+                    Forwad_Speed tt = new Forwad_Speed();
+                    tt.execute(new String[]{speedF});
+
+
+                    Forward_Coordinates tas = new Forward_Coordinates();
+                    tas.execute(new String[]{String.valueOf(latitude),String.valueOf(longitude)});
                 }
                 catch (Exception e)
                 {
@@ -312,6 +181,118 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         {
             Toast.makeText(getApplicationContext(),e.toString(),Toast.LENGTH_LONG).show();
         }
+
+    }
+
+
+
+
+
+
+    private class Forward_Coordinates extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPreExecute() {
+            //if you want, start progress dialog here
+        }
+
+        @Override
+        protected String doInBackground(String... urls) {
+            String Collections = "";
+
+
+            try {
+                final String NAMESPACE = "http://tempuri.org/";
+                final String URL = "http://192.168.43.175/Titanic_Service/";
+                //final String URL = "http://192.168.0.137/Titanic_Service/";
+                final String SOAP_ACTION = "http://tempuri.org/Insert_Coordinates";
+                final String METHOD_NAME = "Insert_Coordinates";
+                SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME);
+
+
+                request.addProperty("lat", urls[0]);
+                request.addProperty("lng", urls[1]);
+
+                SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+                envelope.dotNet = true;
+                envelope.setOutputSoapObject(request);
+                HttpTransportSE androidHttpTransport = new HttpTransportSE(URL);
+                androidHttpTransport.call(SOAP_ACTION, envelope);
+                SoapPrimitive response = (SoapPrimitive) envelope.getResponse();
+
+
+                Collections = response.toString();
+
+            } catch (Exception e) {
+                Collections = e.getLocalizedMessage();
+            }
+
+
+            return Collections;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            //if you started progress dialog dismiss it here
+            Toast.makeText(getApplicationContext(),result, Toast.LENGTH_LONG).show();
+
+
+        }
+
+
+    }
+
+
+    private class Forwad_Speed extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPreExecute() {
+            //if you want, start progress dialog here
+        }
+
+        @Override
+        protected String doInBackground(String... urls) {
+            String Collections = "";
+
+
+            try {
+                final String NAMESPACE = "http://tempuri.org/";
+                final String URL = "http://192.168.43.175/Titanic_Service/";
+                //final String URL = "http://192.168.0.137/Titanic_Service/";
+                final String SOAP_ACTION = "http://tempuri.org/Update_Speed";
+                final String METHOD_NAME = "Update_Speed";
+                SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME);
+
+
+                request.addProperty("speed", urls[0]);
+
+
+                SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+                envelope.dotNet = true;
+                envelope.setOutputSoapObject(request);
+                HttpTransportSE androidHttpTransport = new HttpTransportSE(URL);
+                androidHttpTransport.call(SOAP_ACTION, envelope);
+                SoapPrimitive response = (SoapPrimitive) envelope.getResponse();
+
+
+                Collections = response.toString();
+
+            } catch (Exception e) {
+                Collections = e.getLocalizedMessage();
+            }
+
+
+            return Collections;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            //if you started progress dialog dismiss it here
+            Toast.makeText(getApplicationContext(),result, Toast.LENGTH_LONG).show();
+
+
+        }
+
 
     }
 }
